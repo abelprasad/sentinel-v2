@@ -96,6 +96,10 @@ spring:
       on-profile: test
   flyway:
     enabled: true
+  security:
+    user:
+      name: test
+      password: test
 sentinel:
   adsb:
     poll-interval-ms: 3600000
