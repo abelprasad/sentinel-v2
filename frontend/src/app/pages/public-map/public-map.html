@@ -11,42 +11,42 @@
 
   <section class="statusbar" aria-label="System status">
     <div class="stat">
-      <span class="value">{{ status?.aircraftTracked ?? '—' }}</span>
+      <span class="value">{{ status()?.aircraftTracked ?? '—' }}</span>
       <span class="label">Aircraft tracked</span>
     </div>
     <div class="stat">
-      <span class="value">{{ status?.activeTracks ?? '—' }}</span>
+      <span class="value">{{ status()?.activeTracks ?? '—' }}</span>
       <span class="label">Active tracks</span>
     </div>
     <div class="stat">
-      <span class="value">{{ status?.anomaliesLast24h ?? '—' }}</span>
+      <span class="value">{{ status()?.anomaliesLast24h ?? '—' }}</span>
       <span class="label">Anomalies (24h)</span>
     </div>
     <div class="stat">
-      <span class="value">{{ status?.eventsLastHour ?? '—' }}</span>
+      <span class="value">{{ status()?.eventsLastHour ?? '—' }}</span>
       <span class="label">Events (1h)</span>
     </div>
-    @if (lastUpdated) {
-      <span class="updated">Updated {{ lastUpdated | date: 'HH:mm:ss' }}</span>
+    @if (lastUpdated()) {
+      <span class="updated">Updated {{ lastUpdated() | date: 'HH:mm:ss' }}</span>
     }
   </section>
 
-  @if (error) {
-    <p class="banner error" role="alert">{{ error }}</p>
+  @if (error()) {
+    <p class="banner error" role="alert">{{ error() }}</p>
   }
 
   <div class="content">
     <section class="map-panel" aria-label="Aircraft map">
       <app-leaflet-map
         class="map"
-        [markers]="markers"
-        [selectedIcao]="selectedIcao"
+        [markers]="markers()"
+        [selectedIcao]="selectedIcao()"
         (markerClick)="select($event)"
       />
-      @if (selectedIcao) {
+      @if (selectedIcao()) {
         <app-track-detail
           class="detail-overlay"
-          [icaoHex]="selectedIcao"
+          [icaoHex]="selectedIcao()"
           (closed)="clearSelection()"
         />
       }
@@ -55,13 +55,13 @@
     <aside class="sidebar" aria-label="Recent anomalies">
       <h2>Recent anomalies</h2>
       <ul class="anomaly-feed">
-        @for (a of anomalies; track a.id) {
+        @for (a of anomalies(); track a.id) {
           <li>
             <button
               type="button"
               (click)="select(a.icaoHex)"
-              [class.active]="a.icaoHex === selectedIcao"
-              [attr.aria-current]="a.icaoHex === selectedIcao ? 'true' : null"
+              [class.active]="a.icaoHex === selectedIcao()"
+              [attr.aria-current]="a.icaoHex === selectedIcao() ? 'true' : null"
               [attr.aria-label]="
                 'View track for ' + (a.callsign?.trim() || a.icaoHex) + ', anomaly score ' + (a.score | number: '1.1-1')
               "
@@ -82,7 +82,7 @@
           </li>
         } @empty {
           <li class="empty">
-            @if (loading) {
+            @if (loading()) {
               Loading&hellip;
             } @else {
               No anomalies reported recently.

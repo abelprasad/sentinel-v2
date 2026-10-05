@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
@@ -23,6 +23,9 @@ import {
  * feed of recent anomalies. Selecting an aircraft (map marker or feed item)
  * opens its track detail. All data re-polls every 30s, matching the backend
  * cadence.
+ *
+ * State is signal-based: the app is zoneless, so async updates must go
+ * through signals to reach the template.
  */
 @Component({
   selector: 'app-public-map',
@@ -35,13 +38,13 @@ export class PublicMapComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected status: StatusDto | null = null;
-  protected anomalies: AnomalyDto[] = [];
-  protected markers: AircraftMarker[] = [];
-  protected selectedIcao: string | null = null;
-  protected loading = true;
-  protected error: string | null = null;
-  protected lastUpdated: Date | null = null;
+  protected readonly status = signal<StatusDto | null>(null);
+  protected readonly anomalies = signal<AnomalyDto[]>([]);
+  protected readonly markers = signal<AircraftMarker[]>([]);
+  protected readonly selectedIcao = signal<string | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly lastUpdated = signal<Date | null>(null);
 
   ngOnInit(): void {
     timer(0, MAP_REFRESH_INTERVAL_MS)
@@ -51,28 +54,29 @@ export class PublicMapComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.loading = false;
-          this.lastUpdated = new Date();
-          this.error =
-            !this.status && this.anomalies.length === 0
+          this.loading.set(false);
+          this.lastUpdated.set(new Date());
+          this.error.set(
+            !this.status() && this.anomalies().length === 0
               ? 'Live data is unavailable right now. Retrying automatically.'
-              : null;
+              : null,
+          );
         },
         error: () => {
-          this.loading = false;
-          this.error = 'Live data is unavailable right now. Retrying automatically.';
+          this.loading.set(false);
+          this.error.set('Live data is unavailable right now. Retrying automatically.');
         },
       });
   }
 
   /** Select an aircraft: highlights its marker and opens its track detail. */
   select(icaoHex: string): void {
-    this.selectedIcao = icaoHex;
+    this.selectedIcao.set(icaoHex);
   }
 
   /** Close the track detail panel. */
   clearSelection(): void {
-    this.selectedIcao = null;
+    this.selectedIcao.set(null);
   }
 
   /**
@@ -85,23 +89,31 @@ export class PublicMapComponent implements OnInit {
       status: this.api.getStatus().pipe(catchError(() => of(null))),
       page: this.api.getPublicAnomalies(undefined, 0, 30).pipe(catchError(() => of(null))),
     }).pipe(
-      switchMap(({ status, page }: { status: StatusDto | null; page: { content: AnomalyDto[] } | null }) => {
-        const anomalies = page?.content ?? [];
-        this.status = status;
-        this.anomalies = anomalies;
-        const icaos = [...new Set(anomalies.map((a) => a.icaoHex))].slice(0, 20);
-        if (icaos.length === 0) {
-          this.markers = [];
-          return of(undefined);
-        }
-        return forkJoin(
-          icaos.map((icao) => this.api.getTrack(icao).pipe(catchError(() => of(null)))),
-        ).pipe(
-          map((tracks: (TrackDto | null)[]) => {
-            this.markers = this.buildMarkers(anomalies, tracks);
-          }),
-        );
-      }),
+      switchMap(
+        ({
+          status,
+          page,
+        }: {
+          status: StatusDto | null;
+          page: { content: AnomalyDto[] } | null;
+        }) => {
+          const anomalies = page?.content ?? [];
+          this.status.set(status);
+          this.anomalies.set(anomalies);
+          const icaos = [...new Set(anomalies.map((a) => a.icaoHex))].slice(0, 20);
+          if (icaos.length === 0) {
+            this.markers.set([]);
+            return of(undefined);
+          }
+          return forkJoin(
+            icaos.map((icao) => this.api.getTrack(icao).pipe(catchError(() => of(null)))),
+          ).pipe(
+            map((tracks: (TrackDto | null)[]) => {
+              this.markers.set(this.buildMarkers(anomalies, tracks));
+            }),
+          );
+        },
+      ),
       map(() => undefined),
     );
   }

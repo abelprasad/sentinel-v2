@@ -2,7 +2,7 @@
   <section class="track-detail" aria-label="Flight track detail">
     <header class="detail-header">
       <div class="identity">
-        <h2>{{ track?.aircraft?.callsign?.trim() || icaoHex() }}</h2>
+        <h2>{{ track()?.aircraft?.callsign?.trim() || icaoHex() }}</h2>
         <p class="icao">ICAO {{ icaoHex() }}</p>
       </div>
       <button type="button" class="close-btn" (click)="close()" aria-label="Close track detail">
@@ -10,11 +10,11 @@
       </button>
     </header>
 
-    @if (loading && !track) {
+    @if (loading() && !track()) {
       <p class="state">Loading track&hellip;</p>
-    } @else if (error) {
-      <p class="state error" role="alert">{{ error }}</p>
-    } @else if (track) {
+    } @else if (error()) {
+      <p class="state error" role="alert">{{ error() }}</p>
+    } @else if (track()) {
       <div
         #detailMap
         class="detail-map"

@@ -7,6 +7,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -27,6 +28,9 @@ type PlottablePoint = TrackPointDto & { lat: number; lon: number };
  * path as a polyline on a small Leaflet map, and lists recent telemetry
  * (altitude, speed, heading, time) in a table. Re-polls every 30s while
  * open, matching the backend cadence. No auth involved.
+ *
+ * State is signal-based: the app is zoneless, so async updates must go
+ * through signals to reach the template.
  */
 @Component({
   selector: 'app-track-detail',
@@ -45,9 +49,9 @@ export class TrackDetailComponent implements OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly detailMapEl = viewChild<ElementRef<HTMLDivElement>>('detailMap');
 
-  protected track: TrackDto | null = null;
-  protected loading = false;
-  protected error: string | null = null;
+  protected readonly track = signal<TrackDto | null>(null);
+  protected readonly loading = signal(false);
+  protected readonly error = signal<string | null>(null);
 
   private map: L.Map | null = null;
   private trackLayer: L.LayerGroup | null = null;
@@ -70,32 +74,32 @@ export class TrackDetailComponent implements OnDestroy {
 
   /** Newest-first telemetry rows for the table (latest 10 points). */
   protected recentPoints(): TrackPointDto[] {
-    return (this.track?.points ?? []).slice(-10).reverse();
+    return (this.track()?.points ?? []).slice(-10).reverse();
   }
 
   private watch(icao: string | null): void {
     this.stopWatching();
-    this.track = null;
-    this.error = null;
-    this.loading = false;
+    this.track.set(null);
+    this.error.set(null);
+    this.loading.set(false);
     if (!icao) {
       return;
     }
-    this.loading = true;
+    this.loading.set(true);
     this.poll = timer(0, MAP_REFRESH_INTERVAL_MS)
       .pipe(
         switchMap(() => this.api.getTrack(icao).pipe(catchError(() => of(null)))),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((track) => {
-        this.loading = false;
+        this.loading.set(false);
         if (track) {
-          this.error = null;
-          this.track = track;
+          this.error.set(null);
+          this.track.set(track);
           // Let the @if block render the map div before Leaflet touches it.
           queueMicrotask(() => this.drawTrack());
-        } else if (!this.track) {
-          this.error = 'Could not load track data for this aircraft.';
+        } else if (!this.track()) {
+          this.error.set('Could not load track data for this aircraft.');
         }
         // Refresh failures after a successful load keep the stale data silently.
       });
@@ -111,7 +115,7 @@ export class TrackDetailComponent implements OnDestroy {
 
   private drawTrack(): void {
     const el = this.detailMapEl()?.nativeElement;
-    const track = this.track;
+    const track = this.track();
     if (!el || !track) {
       return;
     }
