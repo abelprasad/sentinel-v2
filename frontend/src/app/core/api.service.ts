@@ -9,6 +9,7 @@ import {
   BaselineDto,
   AircraftDto,
   PagedResponse,
+  LoginResponse,
 } from './models/api.models';
 
 /**
@@ -42,8 +43,8 @@ export class ApiService {
 
   // ---- Admin (JWT required, attached by the auth interceptor) ----
 
-  login(username: string, password: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.base}/auth/login`, { username, password });
+  login(username: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, { username, password });
   }
 
   getAircraft(page = 0, size = 20): Observable<PagedResponse<AircraftDto>> {

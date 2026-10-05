@@ -81,3 +81,10 @@ export interface ErrorDto {
   path: string;
   timestamp: string;
 }
+
+/** Mirrors backend LoginResponse. */
+export interface LoginResponse {
+  token: string;
+  username: string;
+  role: string;
+}
