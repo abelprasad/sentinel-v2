@@ -1,0 +1,103 @@
+spring:
+  application:
+    name: sentinel
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sentinel}
+    username: ${SPRING_DATASOURCE_USERNAME:sentinel}
+    password: ${SPRING_DATASOURCE_PASSWORD:sentinel}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  security:
+    # Fail closed: no default users
+    user:
+      name: ${ADMIN_USERNAME:}
+      password: ${ADMIN_PASSWORD:}
+
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# --- SENTINEL domain config (typed via SentinelProperties) ---
+sentinel:
+  adsb:
+    url: ${ADSB_URL:https://api.adsb.lol/v2/lat/40.0/lon/-75.1/dist/25}
+    poll-interval-ms: ${ADSB_POLL_INTERVAL_MS:30000}
+    connect-timeout-ms: 8000
+    read-timeout-ms: 15000
+  anomaly:
+    threshold: 0.7
+    dedup-minutes: 5
+    min-events-for-baseline: 3
+  llm:
+    provider: groq
+    model: llama-3.3-70b-versatile
+    api-key: ${LLM_API_KEY:}
+    enabled: ${LLM_ENABLED:true}
+    connect-timeout-ms: 8000
+    read-timeout-ms: 30000
+  security:
+    jwt-secret: ${JWT_SECRET:}
+    jwt-expiration-ms: 86400000
+    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  prune:
+    retention-days: 7
+    cron: "0 0 3 * * *"
+
+logging:
+  level:
+    root: WARN
+    com.sentinel: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.flywaydb: WARN
+
+---
+# Local dev profile: verbose logging, relaxed CORS
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    com.sentinel: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+# Test profile: Testcontainers provides the datasource; Flyway still runs migrations
+spring:
+  config:
+    activate:
+      on-profile: test
+  flyway:
+    enabled: true
+sentinel:
+  adsb:
+    poll-interval-ms: 3600000
+  llm:
+    enabled: false
