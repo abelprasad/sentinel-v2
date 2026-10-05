@@ -1,5 +1,6 @@
 package com.sentinel.anomaly;
 
+import com.sentinel.config.SentinelProperties;
 import com.sentinel.ingestion.FlightEvent;
 import com.sentinel.ingestion.FlightEventRepository;
 import java.util.List;
@@ -29,11 +30,16 @@ public class AnomalyEngine {
 
     private final FlightEventRepository eventRepository;
     private final AnomalyScoringService scoringService;
+    private final TrackStateService trackStateService;
+    private final int minEventsForBaseline;
     private final AtomicLong watermark = new AtomicLong(-1);
 
-    public AnomalyEngine(FlightEventRepository eventRepository, AnomalyScoringService scoringService) {
+    public AnomalyEngine(FlightEventRepository eventRepository, AnomalyScoringService scoringService,
+            TrackStateService trackStateService, SentinelProperties properties) {
         this.eventRepository = eventRepository;
         this.scoringService = scoringService;
+        this.trackStateService = trackStateService;
+        this.minEventsForBaseline = properties.anomaly().minEventsForBaseline();
     }
 
     /** Start the watermark at the latest event so boot never rescores history. */
@@ -62,6 +68,7 @@ public class AnomalyEngine {
                 if (anomaly.isPresent()) {
                     flagged++;
                 }
+                trackStateService.markActiveById(event.getAircraftId(), minEventsForBaseline);
             } catch (Exception e) {
                 // One bad event must not kill the batch or stall the watermark.
                 log.warn("Scoring failed for event {}, skipping", event.getId(), e);

@@ -15,4 +15,6 @@ public interface AircraftRepository extends JpaRepository<Aircraft, Long> {
     Optional<Aircraft> findByIcaoHex(String icaoHex);
 
     List<Aircraft> findByIcaoHexIn(Collection<String> icaoHexes);
+
+    List<Aircraft> findByTrackState(String trackState);
 }

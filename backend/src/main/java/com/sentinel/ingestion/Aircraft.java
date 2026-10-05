@@ -37,6 +37,9 @@ public class Aircraft {
     @Column(name = "last_seen", nullable = false)
     private Instant lastSeen;
 
+    @Column(name = "track_state", nullable = false, length = 16)
+    private String trackState = "NEW";
+
     protected Aircraft() {
     }
 
@@ -44,6 +47,7 @@ public class Aircraft {
         this.icaoHex = icaoHex;
         this.firstSeen = Instant.now();
         this.lastSeen = Instant.now();
+        this.trackState = "NEW";
     }
 
     public Long getId() {
@@ -80,5 +84,13 @@ public class Aircraft {
 
     public void touch() {
         this.lastSeen = Instant.now();
+    }
+
+    public String getTrackState() {
+        return trackState;
+    }
+
+    public void setTrackState(String trackState) {
+        this.trackState = trackState;
     }
 }
