@@ -40,13 +40,18 @@ describe('TrackDetailComponent', () => {
   async function open(icao: string | null = 'a1b2c3'): Promise<void> {
     fixture.componentRef.setInput('icaoHex', icao);
     fixture.detectChanges();
-    await fixture.whenStable();
+    await flushAsync();
     fixture.detectChanges();
+  }
+
+  /** Real-timer flush: the app is zoneless, so whenStable() cannot see setTimeout. */
+  function flushAsync(ms = 50): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   it('renders nothing when no aircraft is selected', async () => {
     fixture.detectChanges();
-    await fixture.whenStable();
+    await flushAsync();
     expect(fixture.nativeElement.querySelector('.track-detail')).toBeNull();
   });
 

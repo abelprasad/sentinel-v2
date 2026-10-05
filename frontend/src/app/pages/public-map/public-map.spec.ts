@@ -88,8 +88,13 @@ describe('PublicMapComponent', () => {
 
   async function settle(): Promise<void> {
     fixture.detectChanges();
-    await fixture.whenStable();
+    await flushAsync();
     fixture.detectChanges();
+  }
+
+  /** Real-timer flush: the app is zoneless, so whenStable() cannot see setTimeout. */
+  function flushAsync(ms = 50): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   it('shows fleet counts in the status bar', async () => {
