@@ -32,7 +32,7 @@ public class AdsbClient {
     private final ObjectMapper mapper;
 
     public AdsbClient(
-            @Qualifier(adsbRestClient) RestClient http,
+            @Qualifier("adsbRestClient") RestClient http,
             SentinelProperties props,
             ObjectMapper mapper) {
         this.http = http;
@@ -49,7 +49,7 @@ public class AdsbClient {
                     .retrieve()
                     .body(String.class);
         } catch (Exception e) {
-            log.warn(ADS-B fetch failed: {}, e.getMessage());
+            log.warn("ADS-B fetch failed: {}", e.getMessage());
             return List.of();
         }
         return parse(body);

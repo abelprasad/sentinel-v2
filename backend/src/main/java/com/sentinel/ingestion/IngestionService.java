@@ -1,9 +1,12 @@
 package com.sentinel.ingestion;
 
+import com.sentinel.config.SentinelProperties;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -17,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Batch-oriented: one lookup for all known aircraft, one insert
  * batch for new aircraft, one insert batch for events. v1 issued a
- * per-aircraft findByIcaoHex plus a save per poll (N+1).
+ * per-aircraft findByIcaoHex plus a save per poll (N+1), and wrote
+ * every report unconditionally — see {@link DedupDecider}.
  */
 @Service
 public class IngestionService {
@@ -27,14 +31,27 @@ public class IngestionService {
     private final AdsbClient adsbClient;
     private final AircraftRepository aircraftRepository;
     private final FlightEventRepository eventRepository;
+    private final DedupDecider dedupDecider;
+    private final SentinelProperties props;
+
+    /**
+     * Latest persisted event per aircraft. Lets the dedup check run
+     * without a DB read per aircraft per poll; falls back to the
+     * database on a cold start.
+     */
+    private final Map<Long, FlightEvent> lastEventCache = new ConcurrentHashMap<>();
 
     public IngestionService(
             AdsbClient adsbClient,
             AircraftRepository aircraftRepository,
-            FlightEventRepository eventRepository) {
+            FlightEventRepository eventRepository,
+            DedupDecider dedupDecider,
+            SentinelProperties props) {
         this.adsbClient = adsbClient;
         this.aircraftRepository = aircraftRepository;
         this.eventRepository = eventRepository;
+        this.dedupDecider = dedupDecider;
+        this.props = props;
     }
 
     @Scheduled(fixedDelayString = "${sentinel.adsb.poll-interval-ms}")
@@ -79,9 +96,16 @@ public class IngestionService {
             log.info("Registered {} new aircraft", fresh.size());
         }
 
+        Duration window = Duration.ofMinutes(props.anomaly().dedupMinutes());
         List<FlightEvent> events = new ArrayList<>(reports.size());
+        int skipped = 0;
         for (AdsbAircraft report : reports) {
             Aircraft aircraft = known.get(report.hex());
+            FlightEvent previous = lastEventFor(aircraft.getId());
+            if (!dedupDecider.shouldPersist(previous, report, window, recordedAt)) {
+                skipped++;
+                continue;
+            }
             FlightEvent event = new FlightEvent(aircraft.getId(), recordedAt);
             event.setAltitudeFt(report.altitudeFt());
             event.setSpeedKts(report.groundSpeedKts());
@@ -89,8 +113,25 @@ public class IngestionService {
             event.setLat(report.lat());
             event.setLon(report.lon());
             events.add(event);
+            lastEventCache.put(aircraft.getId(), event);
         }
-        eventRepository.saveAll(events);
-        log.info("ADS-B ingestion complete - {} events for {} aircraft", events.size(), known.size());
+        if (!events.isEmpty()) {
+            eventRepository.saveAll(events);
+        }
+        log.info("ADS-B ingestion complete - {} events, {} deduped, {} aircraft",
+                events.size(), skipped, known.size());
+    }
+
+    private FlightEvent lastEventFor(Long aircraftId) {
+        FlightEvent cached = lastEventCache.get(aircraftId);
+        if (cached != null) {
+            return cached;
+        }
+        return eventRepository.findFirstByAircraftIdOrderByRecordedAtDesc(aircraftId)
+                .map(e -> {
+                    lastEventCache.put(aircraftId, e);
+                    return e;
+                })
+                .orElse(null);
     }
 }

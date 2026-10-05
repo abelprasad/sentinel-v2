@@ -12,25 +12,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AdsbAircraft(
-        @JsonProperty(hex) String hex,
-        @JsonProperty(flight) String flight,
-        @JsonProperty(lat) Double lat,
-        @JsonProperty(lon) Double lon,
-        /** Barometric altitude in feet — a number, or the string {@code ground}. */
-        @JsonProperty(alt_baro) Object altBaro,
-        @JsonProperty(gs) Double groundSpeedKts,
-        @JsonProperty(track) Double trackDeg,
-        /** ICAO aircraft type designator, e.g. {@code B738}. */
-        @JsonProperty(t) String type,
+        @JsonProperty("hex") String hex,
+        @JsonProperty("flight") String flight,
+        @JsonProperty("lat") Double lat,
+        @JsonProperty("lon") Double lon,
+        /** Barometric altitude in feet — a number, or the string {@code "ground"}. */
+        @JsonProperty("alt_baro") Object altBaro,
+        @JsonProperty("gs") Double groundSpeedKts,
+        @JsonProperty("track") Double trackDeg,
+        /** ICAO aircraft type designator, e.g. {@code "B738"}. */
+        @JsonProperty("t") String type,
         /** ADS-B emitter category code. */
-        @JsonProperty(category) String category) {
+        @JsonProperty("category") String category) {
 
     /** Altitude in feet, or {@code null} when on the ground / not reported. */
     public Double altitudeFt() {
         if (altBaro instanceof Number n) {
             return n.doubleValue();
         }
-        return null; // ground or missing
+        return null; // "ground" or missing
     }
 
     public String callsign() {

@@ -16,35 +16,35 @@ import java.time.Instant;
  * needs the parent entity hydrated.
  */
 @Entity
-@Table(name = flight_event)
+@Table(name = "flight_event")
 public class FlightEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = aircraft_id, nullable = false)
+    @Column(name = "aircraft_id", nullable = false)
     private Long aircraftId;
 
-    @Column(name = altitude_ft)
+    @Column(name = "altitude_ft")
     private Double altitudeFt;
 
-    @Column(name = speed_kts)
+    @Column(name = "speed_kts")
     private Double speedKts;
 
-    @Column(name = heading_deg)
+    @Column(name = "heading_deg")
     private Double headingDeg;
 
-    @Column(name = lat)
+    @Column(name = "lat")
     private Double lat;
 
-    @Column(name = lon)
+    @Column(name = "lon")
     private Double lon;
 
-    @Column(name = recorded_at, nullable = false)
+    @Column(name = "recorded_at", nullable = false)
     private Instant recordedAt;
 
-    @Column(name = ingested_at, nullable = false)
+    @Column(name = "ingested_at", nullable = false)
     private Instant ingestedAt;
 
     protected FlightEvent() {
