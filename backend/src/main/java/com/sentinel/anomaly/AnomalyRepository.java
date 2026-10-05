@@ -25,6 +25,9 @@ public interface AnomalyRepository extends JpaRepository<Anomaly, Long> {
     /** Paginated per-aircraft history. */
     Page<Anomaly> findByAircraftIdOrderByFlaggedAtDesc(Long aircraftId, Pageable pageable);
 
+    /** Admin queue filter: acknowledged or not, newest first. */
+    Page<Anomaly> findByAcknowledgedOrderByFlaggedAtDesc(boolean acknowledged, Pageable pageable);
+
     /** Cooldown check: the most recent flag for this aircraft, if any. */
     Optional<Anomaly> findFirstByAircraftIdOrderByFlaggedAtDesc(Long aircraftId);
 
