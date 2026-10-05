@@ -108,3 +108,6 @@ sentinel:
     poll-interval-ms: 3600000
   llm:
     enabled: false
+  security:
+    # Fixed dummy secret for tests only — NEVER use in production.
+    jwt-secret: test-only-jwt-secret-min-32-bytes-long!

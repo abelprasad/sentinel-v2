@@ -1,7 +1,8 @@
 package com.sentinel.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import com.sentinel.security.JwtTokenService;
+import com.sentinel.security.Role;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -54,6 +55,14 @@ class ApiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JwtTokenService tokens;
+
+    /** Mints a real JWT for tests — no HTTP basic anymore. */
+    private String adminToken() {
+        return "Bearer " + tokens.generate("test-admin", Role.ADMIN);
+    }
 
     @Autowired
     private AircraftRepository aircraftRepository;
@@ -172,22 +181,22 @@ class ApiTest {
     @Test
     void adminAircraftCrud() throws Exception {
         // list
-        mockMvc.perform(get("/api/admin/aircraft").with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/admin/aircraft").header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1));
 
         // get one
-        mockMvc.perform(get("/api/admin/aircraft/" + aircraft.getId()).with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/admin/aircraft/" + aircraft.getId()).header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.icaoHex").value("a1b2c3"));
 
         // get missing -> 404
-        mockMvc.perform(get("/api/admin/aircraft/999999").with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/admin/aircraft/999999").header("Authorization", adminToken()))
                 .andExpect(status().isNotFound());
 
         // patch callsign
         mockMvc.perform(patch("/api/admin/aircraft/" + aircraft.getId())
-                        .with(httpBasic("test", "test"))
+                        .header("Authorization", adminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"callsign\": \"NEW999\"}"))
                 .andExpect(status().isOk())
@@ -195,14 +204,14 @@ class ApiTest {
 
         // patch validation: callsign too long -> 400
         mockMvc.perform(patch("/api/admin/aircraft/" + aircraft.getId())
-                        .with(httpBasic("test", "test"))
+                        .header("Authorization", adminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"callsign\": \"THIS_CALLSIGN_IS_WAY_TOO_LONG\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("validation_failed"));
 
         // delete cascades
-        mockMvc.perform(delete("/api/admin/aircraft/" + aircraft.getId()).with(httpBasic("test", "test")))
+        mockMvc.perform(delete("/api/admin/aircraft/" + aircraft.getId()).header("Authorization", adminToken()))
                 .andExpect(status().isNoContent());
         assertThat(aircraftRepository.findById(aircraft.getId())).isEmpty();
         assertThat(eventRepository.findAll()).isEmpty();
@@ -216,54 +225,54 @@ class ApiTest {
 
         // acknowledge
         mockMvc.perform(post("/api/admin/anomalies/" + anomalyId + "/acknowledge")
-                        .with(httpBasic("test", "test")))
+                        .header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.acknowledged").value(true));
 
         // escalate then de-escalate
         mockMvc.perform(post("/api/admin/anomalies/" + anomalyId + "/escalate")
-                        .with(httpBasic("test", "test")))
+                        .header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.escalated").value(true));
 
         mockMvc.perform(delete("/api/admin/anomalies/" + anomalyId + "/escalate")
-                        .with(httpBasic("test", "test")))
+                        .header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.escalated").value(false));
 
         // acknowledged filter
         mockMvc.perform(get("/api/admin/anomalies")
                         .param("acknowledged", "true")
-                        .with(httpBasic("test", "test")))
+                        .header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1));
 
         // missing anomaly -> 404
-        mockMvc.perform(post("/api/admin/anomalies/999999/acknowledge").with(httpBasic("test", "test")))
+        mockMvc.perform(post("/api/admin/anomalies/999999/acknowledge").header("Authorization", adminToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void adminBaselineViewAndReset() throws Exception {
         // get baseline
-        mockMvc.perform(get("/api/admin/baselines/" + aircraft.getId()).with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/admin/baselines/" + aircraft.getId()).header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.icaoHex").value("a1b2c3"));
 
         // reset
         mockMvc.perform(post("/api/admin/baselines/" + aircraft.getId() + "/reset")
-                        .with(httpBasic("test", "test")))
+                        .header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.altitudeCount").value(0));
 
         // unknown aircraft -> 404
-        mockMvc.perform(get("/api/admin/baselines/999999").with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/admin/baselines/999999").header("Authorization", adminToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void unknownPathsAreDenied() throws Exception {
-        mockMvc.perform(get("/api/nope").with(httpBasic("test", "test")))
+        mockMvc.perform(get("/api/nope").header("Authorization", adminToken()))
                 .andExpect(status().isForbidden());
     }
 }
