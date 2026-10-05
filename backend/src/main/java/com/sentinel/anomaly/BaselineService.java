@@ -106,6 +106,19 @@ public class BaselineService {
                 && recordedAt.isAfter(baseline.getWindowStart().plus(windowLength));
     }
 
+    /**
+     * Admin action: wipe the baseline for one aircraft and start a fresh
+     * window now. The next events rebuild the statistics from scratch.
+     * Useful when a track was misbehaving and the old baseline is poisoned.
+     */
+    @Transactional
+    public void resetBaseline(Long aircraftId) {
+        Baseline baseline = getOrCreate(aircraftId);
+        reset(baseline, Instant.now());
+        baselineRepository.save(baseline);
+        log.info("Baseline reset for aircraft {}", aircraftId);
+    }
+
     private void reset(Baseline baseline, Instant recordedAt) {
         baseline.setAvgAltitudeFt(null);
         baseline.setM2AltitudeFt(0);
