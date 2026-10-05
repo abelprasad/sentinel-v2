@@ -22,8 +22,8 @@ export function handleExpiredSession(err: unknown, auth: AuthService, router: Ro
 export function backendErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof HttpErrorResponse) {
     const body = err.error as Partial<ErrorDto> | string | null | undefined;
-    if (typeof body === 'string' && body.trim().length > 0) {
-      return body;
+    if (typeof body === 'string') {
+      return body.trim().length > 0 ? body : fallback;
     }
     if (body && typeof body.message === 'string' && body.message.trim().length > 0) {
       return body.message;

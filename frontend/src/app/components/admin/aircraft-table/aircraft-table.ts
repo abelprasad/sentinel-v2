@@ -2,9 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
-import { ApiService } from '../../core/api.service';
-import { AuthService } from '../../core/auth.service';
-import { AircraftDto, PagedResponse } from '../../core/models/api.models';
+import { ApiService } from '../../../core/api.service';
+import { AuthService } from '../../../core/auth.service';
+import { AircraftDto, PagedResponse } from '../../../core/models/api.models';
 import { backendErrorMessage, handleExpiredSession } from '../admin-http';
 
 const PAGE_SIZE = 20;
