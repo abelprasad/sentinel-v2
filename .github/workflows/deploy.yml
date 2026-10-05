@@ -1,0 +1,87 @@
+# SENTINEL v2 — Deploy: pull images on indra, restart, smoke test.
+#
+# Triggered only after the Docker workflow SUCCEEDS (so the images exist).
+# Manual runs via workflow_dispatch re-deploy the latest main.
+# Abel reviews before enabling: required secrets are listed below.
+#
+# indra lives on the Tailscale tailnet (100.78.151.90) with no public SSH,
+# so this job joins the tailnet first via the official Tailscale action.
+#
+# Required secrets:
+#   DOCKERHUB_USERNAME / DOCKERHUB_TOKEN  (not used here, listed for completeness)
+#   TS_OAUTH_CLIENT_ID / TS_OAUTH_SECRET  (Tailscale OAuth client, tag:ci)
+#   INDRA_SSH_KEY                          (private key for the abel deploy user)
+#   INDRA_ENV_FILE                         (full production .env contents)
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Docker]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: deploy to indra
+    # Auto-deploy only when Docker succeeded; manual dispatches always run.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Join Tailscale tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.INDRA_SSH_KEY }}" > ~/.ssh/indra
+          chmod 600 ~/.ssh/indra
+          ssh-keyscan -H 100.78.151.90 >> ~/.ssh/known_hosts
+
+      # The compose file pins images by tag (IMAGE_TAG); the .env carries
+      # all secrets. Neither secrets nor tags are baked into the repo.
+      - name: Sync compose file and env
+        run: |
+          ssh -i ~/.ssh/indra abel@100.78.151.90 "mkdir -p ~/sentinel-deploy"
+          scp -i ~/.ssh/indra docker-compose.yml abel@100.78.151.90:~/sentinel-deploy/docker-compose.yml
+          printf '%s\n' "${{ secrets.INDRA_ENV_FILE }}" | ssh -i ~/.ssh/indra abel@100.78.151.90 "cat > ~/sentinel-deploy/.env && chmod 600 ~/sentinel-deploy/.env"
+
+      # Tag format matches docker/metadata-action `type=sha` (sha-<short>).
+      - name: Pull images and restart
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            HEAD_SHA="${{ github.sha }}"
+          fi
+          IMAGE_TAG="sha-$(echo "$HEAD_SHA" | cut -c1-7)"
+          echo "Deploying image tag: $IMAGE_TAG"
+          ssh -i ~/.ssh/indra abel@100.78.151.90 \
+            "cd ~/sentinel-deploy && IMAGE_TAG=$IMAGE_TAG docker compose pull && IMAGE_TAG=$IMAGE_TAG docker compose up -d --remove-orphans"
+
+      # Smoke gate: backend health, public API, and frontend must all answer.
+      # A failed gate fails the workflow (alerts Abel) but leaves the
+      # previous containers running — compose only replaces on success.
+      - name: Smoke test
+        run: |
+          ssh -i ~/.ssh/indra abel@100.78.151.90 '
+            set -e
+            echo "Waiting for backend health..."
+            for i in $(seq 1 30); do
+              curl -sf http://localhost:8888/actuator/health >/dev/null 2>&1 && break
+              sleep 10
+            done
+            curl -sf http://localhost:8888/actuator/health | grep -q "\"status\":\"UP\""
+            echo "backend: UP"
+            curl -sf http://localhost:8888/api/public/status >/dev/null
+            echo "public API: responding"
+            curl -sf http://localhost:3000/ >/dev/null
+            echo "frontend: responding"
+          '
