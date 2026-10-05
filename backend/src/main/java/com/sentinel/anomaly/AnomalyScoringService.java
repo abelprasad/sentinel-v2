@@ -21,12 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>Skip scoring until the baseline has enough samples —
  *       scoring against 2 data points is noise.</li>
  *   <li>Compute per-dimension z-scores; the composite is the max.</li>
- *   <li>Flag when the composite meets the threshold, with a rule-based
- *       explanation naming the offending dimensions and raw values.</li>
+ *   <li>Apply cooldown: suppress repeat flags inside the window, unless
+ *       the score escalates (genuinely worse than the parent anomaly).</li>
+ *   <li>Flag with a rule-based explanation naming the offending dimensions.</li>
  * </ol>
- *
- * <p>Cooldown and escalation live in {@link AnomalyEngine}, which wraps
- * this service — this class answers only "is this event anomalous?".
  */
 @Service
 public class AnomalyScoringService {
@@ -40,6 +38,7 @@ public class AnomalyScoringService {
     private final int minEventsForBaseline;
     private final int baselineWindowHours;
     private final Duration cooldown;
+    private final double escalationMultiplier;
 
     public AnomalyScoringService(
             BaselineService baselineService,
@@ -53,6 +52,7 @@ public class AnomalyScoringService {
         this.minEventsForBaseline = properties.anomaly().minEventsForBaseline();
         this.baselineWindowHours = properties.anomaly().baselineWindowHours();
         this.cooldown = Duration.ofMinutes(properties.anomaly().cooldownMinutes());
+        this.escalationMultiplier = properties.anomaly().escalationMultiplier();
     }
 
     /**
@@ -78,13 +78,25 @@ public class AnomalyScoringService {
             return Optional.empty();
         }
 
-        if (inCooldown(event.getAircraftId())) {
-            log.debug("Aircraft {} in cooldown, suppressing score={}",
-                    event.getAircraftId(), String.format("%.2f", max));
-            return Optional.empty();
+        Optional<Anomaly> coolingDownFrom = findCooldownParent(event.getAircraftId());
+        Long parentId = null;
+        if (coolingDownFrom.isPresent()) {
+            Anomaly parent = coolingDownFrom.get();
+            if (max >= parent.getScore() * escalationMultiplier) {
+                // Genuinely worse — link as an escalation instead of suppressing.
+                parentId = parent.getId();
+                log.info("Escalating anomaly {} for aircraft {}: {} -> {}",
+                        parent.getId(), event.getAircraftId(),
+                        String.format("%.2f", parent.getScore()), String.format("%.2f", max));
+            } else {
+                log.debug("Aircraft {} in cooldown, suppressing score={}",
+                        event.getAircraftId(), String.format("%.2f", max));
+                return Optional.empty();
+            }
         }
 
         Anomaly anomaly = new Anomaly(event.getAircraftId(), event.getId(), max);
+        anomaly.setParentAnomalyId(parentId);
         anomaly.setZAltitude(z.altitude());
         anomaly.setZSpeed(z.speed());
         anomaly.setZHeading(z.heading());
@@ -101,13 +113,14 @@ public class AnomalyScoringService {
     /**
      * v1 flagged 142 anomalies/hour because every deviant poll became a
      * standalone alert. The cooldown suppresses repeat flags for one
-     * aircraft until the window lapses — escalation (a genuinely worse
-     * score) is handled separately.
+     * aircraft until the window lapses; a significantly worse score
+     * escalates instead (linked via parentAnomalyId).
+     *
+     * @return the recent anomaly causing the cooldown, or empty when clear
      */
-    private boolean inCooldown(Long aircraftId) {
+    private Optional<Anomaly> findCooldownParent(Long aircraftId) {
         return anomalyRepository.findFirstByAircraftIdOrderByFlaggedAtDesc(aircraftId)
-                .map(last -> Duration.between(last.getFlaggedAt(), Instant.now()).compareTo(cooldown) < 0)
-                .orElse(false);
+                .filter(last -> Duration.between(last.getFlaggedAt(), Instant.now()).compareTo(cooldown) < 0);
     }
 
     private String buildExplanation(FlightEvent event, Baseline baseline, ZScoreCalculator.ZScores z) {
