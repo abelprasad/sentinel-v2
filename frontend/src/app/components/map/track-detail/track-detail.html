@@ -1,0 +1,55 @@
+@if (icaoHex()) {
+  <section class="track-detail" aria-label="Flight track detail">
+    <header class="detail-header">
+      <div class="identity">
+        <h2>{{ track?.aircraft?.callsign?.trim() || icaoHex() }}</h2>
+        <p class="icao">ICAO {{ icaoHex() }}</p>
+      </div>
+      <button type="button" class="close-btn" (click)="close()" aria-label="Close track detail">
+        &times;
+      </button>
+    </header>
+
+    @if (loading && !track) {
+      <p class="state">Loading track&hellip;</p>
+    } @else if (error) {
+      <p class="state error" role="alert">{{ error }}</p>
+    } @else if (track) {
+      <div
+        #detailMap
+        class="detail-map"
+        role="img"
+        aria-label="Flight path map for the selected aircraft"
+      ></div>
+      <table class="telemetry">
+        <caption>
+          Recent track points, newest first
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Lat</th>
+            <th scope="col">Lon</th>
+            <th scope="col">Alt (ft)</th>
+            <th scope="col">Speed (kts)</th>
+            <th scope="col">Hdg (&deg;)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of recentPoints(); track p.recordedAt) {
+            <tr>
+              <td>{{ p.recordedAt | date: 'HH:mm:ss' }}</td>
+              <td>{{ p.lat != null ? (p.lat | number: '1.4-4') : '—' }}</td>
+              <td>{{ p.lon != null ? (p.lon | number: '1.4-4') : '—' }}</td>
+              <td>{{ p.altitudeFt ?? '—' }}</td>
+              <td>{{ p.speedKts ?? '—' }}</td>
+              <td>{{ p.headingDeg ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="state">No track data for this aircraft.</p>
+    }
+  </section>
+}

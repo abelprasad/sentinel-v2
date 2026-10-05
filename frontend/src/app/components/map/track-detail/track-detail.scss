@@ -1,0 +1,99 @@
+.track-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+  }
+
+  .icao {
+    margin: 0.15rem 0 0;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: ui-monospace, monospace;
+  }
+}
+
+.close-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: #1e293b;
+  }
+}
+
+.detail-map {
+  height: 14rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.state {
+  margin: 0;
+  padding: 1rem 0;
+  text-align: center;
+  color: #94a3b8;
+
+  &.error {
+    color: #fca5a5;
+  }
+}
+
+.telemetry {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+
+  caption {
+    text-align: left;
+    padding-bottom: 0.4rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  th,
+  td {
+    padding: 0.35rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: left;
+  }
+
+  thead th {
+    color: #94a3b8;
+    font-weight: 600;
+  }
+}
