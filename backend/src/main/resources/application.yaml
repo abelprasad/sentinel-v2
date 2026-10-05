@@ -51,9 +51,12 @@ sentinel:
     connect-timeout-ms: 8000
     read-timeout-ms: 15000
   anomaly:
-    threshold: 0.7
+    threshold: 3.0
     dedup-minutes: 5
-    min-events-for-baseline: 3
+    min-events-for-baseline: 10
+    baseline-window-hours: 6
+    cooldown-minutes: 15
+    escalation-multiplier: 1.5
   llm:
     provider: groq
     model: llama-3.3-70b-versatile

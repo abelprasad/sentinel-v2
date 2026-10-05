@@ -27,9 +27,16 @@ public record SentinelProperties(
     }
 
     public record Anomaly(
+            /** Z-score threshold for flagging. v1 used 0.7 on a normalized deviation; v2 uses proper z-scores. */
             double threshold,
             @Min(1) int dedupMinutes,
-            @Min(1) int minEventsForBaseline) {
+            @Min(1) int minEventsForBaseline,
+            /** Sliding window for rolling baselines; stats reset when an event arrives past the edge. */
+            @Min(1) int baselineWindowHours,
+            /** Minimum gap between standalone alerts for one aircraft. */
+            @Min(1) int cooldownMinutes,
+            /** A score this many times the previous anomaly's escalates instead of cooling down. */
+            double escalationMultiplier) {
     }
 
     public record Llm(
