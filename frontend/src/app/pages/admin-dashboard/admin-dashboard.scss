@@ -1,0 +1,148 @@
+.admin-shell {
+  min-height: 100vh;
+  background: #0b0f14;
+  color: #e6edf3;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #232b36;
+  background: #11161d;
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #30363d;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #e6edf3;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: #f85149;
+    color: #ffa198;
+  }
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #232b36;
+  background: #11161d;
+
+  button[role='tab'] {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: #8b949e;
+    font-size: 0.95rem;
+    cursor: pointer;
+
+    &:hover {
+      color: #e6edf3;
+    }
+
+    &.active {
+      border-bottom-color: #1f6feb;
+      color: #e6edf3;
+      font-weight: 600;
+    }
+  }
+}
+
+.tab-panel {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+}
+
+.ghost-btn {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #30363d;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #e6edf3;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: #1f6feb;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.muted {
+  color: #8b949e;
+}
+
+.placeholder {
+  padding: 2rem;
+  border: 1px dashed #30363d;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.panel-error {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #5a1f1f;
+  border-radius: 0.4rem;
+  background: #2a1215;
+  color: #ffa198;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+.stat {
+  padding: 0.9rem 1rem;
+  border: 1px solid #232b36;
+  border-radius: 0.5rem;
+  background: #11161d;
+
+  dt {
+    margin-bottom: 0.3rem;
+    color: #8b949e;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+}
