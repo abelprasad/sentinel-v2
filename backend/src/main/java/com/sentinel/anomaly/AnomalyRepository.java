@@ -3,6 +3,8 @@ package com.sentinel.anomaly;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -16,6 +18,12 @@ public interface AnomalyRepository extends JpaRepository<Anomaly, Long> {
 
     /** Dashboard queue: everything awaiting analyst review. */
     List<Anomaly> findByAcknowledgedFalseOrderByFlaggedAtDesc();
+
+    /** Paginated variant for the public anomalies endpoint. */
+    Page<Anomaly> findByOrderByFlaggedAtDesc(Pageable pageable);
+
+    /** Paginated per-aircraft history. */
+    Page<Anomaly> findByAircraftIdOrderByFlaggedAtDesc(Long aircraftId, Pageable pageable);
 
     /** Cooldown check: the most recent flag for this aircraft, if any. */
     Optional<Anomaly> findFirstByAircraftIdOrderByFlaggedAtDesc(Long aircraftId);
