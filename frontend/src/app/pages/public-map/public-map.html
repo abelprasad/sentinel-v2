@@ -1,0 +1,95 @@
+<div class="public-map">
+  <header class="topbar">
+    <div class="brand">
+      <h1>SENTINEL</h1>
+      <p>Live airspace anomaly detection</p>
+    </div>
+    <span class="live-badge" aria-label="Live data streaming">
+      <span class="pulse" aria-hidden="true"></span>LIVE
+    </span>
+  </header>
+
+  <section class="statusbar" aria-label="System status">
+    <div class="stat">
+      <span class="value">{{ status?.aircraftTracked ?? '—' }}</span>
+      <span class="label">Aircraft tracked</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ status?.activeTracks ?? '—' }}</span>
+      <span class="label">Active tracks</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ status?.anomaliesLast24h ?? '—' }}</span>
+      <span class="label">Anomalies (24h)</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ status?.eventsLastHour ?? '—' }}</span>
+      <span class="label">Events (1h)</span>
+    </div>
+    @if (lastUpdated) {
+      <span class="updated">Updated {{ lastUpdated | date: 'HH:mm:ss' }}</span>
+    }
+  </section>
+
+  @if (error) {
+    <p class="banner error" role="alert">{{ error }}</p>
+  }
+
+  <div class="content">
+    <section class="map-panel" aria-label="Aircraft map">
+      <app-leaflet-map
+        class="map"
+        [markers]="markers"
+        [selectedIcao]="selectedIcao"
+        (markerClick)="select($event)"
+      />
+      @if (selectedIcao) {
+        <app-track-detail
+          class="detail-overlay"
+          [icaoHex]="selectedIcao"
+          (closed)="clearSelection()"
+        />
+      }
+    </section>
+
+    <aside class="sidebar" aria-label="Recent anomalies">
+      <h2>Recent anomalies</h2>
+      <ul class="anomaly-feed">
+        @for (a of anomalies; track a.id) {
+          <li>
+            <button
+              type="button"
+              (click)="select(a.icaoHex)"
+              [class.active]="a.icaoHex === selectedIcao"
+              [attr.aria-current]="a.icaoHex === selectedIcao ? 'true' : null"
+              [attr.aria-label]="
+                'View track for ' + (a.callsign?.trim() || a.icaoHex) + ', anomaly score ' + (a.score | number: '1.1-1')
+              "
+            >
+              <span class="row-top">
+                <strong>{{ a.callsign?.trim() || a.icaoHex }}</strong>
+                @if (a.escalated) {
+                  <span class="badge escalated">Escalated</span>
+                }
+              </span>
+              <span class="row-meta">
+                score {{ a.score | number: '1.1-1' }} &middot; {{ a.flaggedAt | date: 'short' }}
+              </span>
+              @if (a.explanation) {
+                <span class="row-expl">{{ a.explanation }}</span>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="empty">
+            @if (loading) {
+              Loading&hellip;
+            } @else {
+              No anomalies reported recently.
+            }
+          </li>
+        }
+      </ul>
+    </aside>
+  </div>
+</div>
