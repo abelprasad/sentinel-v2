@@ -12,4 +12,7 @@ public interface BaselineRepository extends JpaRepository<Baseline, Long> {
     Optional<Baseline> findByAircraftId(Long aircraftId);
 
     java.util.List<Baseline> findByAircraftIdIn(java.util.Collection<Long> aircraftIds);
+
+    /** Admin aircraft delete: remove the baseline for one aircraft. */
+    void deleteByAircraftId(Long aircraftId);
 }

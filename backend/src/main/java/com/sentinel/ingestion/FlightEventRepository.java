@@ -26,4 +26,7 @@ public interface FlightEventRepository extends JpaRepository<FlightEvent, Long> 
 
     /** Boot watermark: the newest event id, so restarts never rescore history. */
     Optional<FlightEvent> findFirstByOrderByIdDesc();
+
+    /** Admin aircraft delete: remove all events for one aircraft. */
+    void deleteByAircraftId(Long aircraftId);
 }

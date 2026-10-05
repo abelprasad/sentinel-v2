@@ -33,6 +33,9 @@ public interface AnomalyRepository extends JpaRepository<Anomaly, Long> {
 
     long countByFlaggedAtAfter(Instant after);
 
+    /** Admin aircraft delete: remove all flags for one aircraft. */
+    void deleteByAircraftId(Long aircraftId);
+
     /** Status endpoint: how many flags are awaiting analyst review. */
     long countByAcknowledgedFalse();
 
