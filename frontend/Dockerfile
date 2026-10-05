@@ -2,10 +2,14 @@
 # Multi-stage: Node build -> nginx runtime (non-root on 8080).
 
 # ---- Build stage ----
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # npm ci needs both files for a clean, reproducible install
+# Pin npm to the version that generated package-lock.json (11.6.2).
+# npm 11.19+ resolves optional deps differently and breaks npm ci.
+RUN npm install -g npm@11.6.2 --no-audit --no-fund
+
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
