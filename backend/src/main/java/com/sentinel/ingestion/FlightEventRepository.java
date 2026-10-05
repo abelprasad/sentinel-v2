@@ -16,4 +16,10 @@ public interface FlightEventRepository extends JpaRepository<FlightEvent, Long> 
     List<FlightEvent> findByAircraftIdAndRecordedAtAfterOrderByRecordedAtAsc(Long aircraftId, Instant after);
 
     long countByRecordedAtAfter(Instant after);
+
+    /** Engine watermark: every event after the last processed id, oldest first. */
+    List<FlightEvent> findByIdGreaterThanOrderByIdAsc(Long id);
+
+    /** Boot watermark: the newest event id, so restarts never rescore history. */
+    Optional<FlightEvent> findFirstByOrderByIdDesc();
 }
