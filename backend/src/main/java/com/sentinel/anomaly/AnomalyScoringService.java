@@ -2,6 +2,8 @@ package com.sentinel.anomaly;
 
 import com.sentinel.config.SentinelProperties;
 import com.sentinel.ingestion.FlightEvent;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ public class AnomalyScoringService {
     private final double threshold;
     private final int minEventsForBaseline;
     private final int baselineWindowHours;
+    private final Duration cooldown;
 
     public AnomalyScoringService(
             BaselineService baselineService,
@@ -49,6 +52,7 @@ public class AnomalyScoringService {
         this.threshold = properties.anomaly().threshold();
         this.minEventsForBaseline = properties.anomaly().minEventsForBaseline();
         this.baselineWindowHours = properties.anomaly().baselineWindowHours();
+        this.cooldown = Duration.ofMinutes(properties.anomaly().cooldownMinutes());
     }
 
     /**
@@ -74,6 +78,12 @@ public class AnomalyScoringService {
             return Optional.empty();
         }
 
+        if (inCooldown(event.getAircraftId())) {
+            log.debug("Aircraft {} in cooldown, suppressing score={}",
+                    event.getAircraftId(), String.format("%.2f", max));
+            return Optional.empty();
+        }
+
         Anomaly anomaly = new Anomaly(event.getAircraftId(), event.getId(), max);
         anomaly.setZAltitude(z.altitude());
         anomaly.setZSpeed(z.speed());
@@ -86,6 +96,18 @@ public class AnomalyScoringService {
         log.info("Flagged anomaly {} for aircraft {}: score={} ({})",
                 saved.getId(), event.getAircraftId(), String.format("%.2f", max), z.dominantDimension());
         return Optional.of(saved);
+    }
+
+    /**
+     * v1 flagged 142 anomalies/hour because every deviant poll became a
+     * standalone alert. The cooldown suppresses repeat flags for one
+     * aircraft until the window lapses — escalation (a genuinely worse
+     * score) is handled separately.
+     */
+    private boolean inCooldown(Long aircraftId) {
+        return anomalyRepository.findFirstByAircraftIdOrderByFlaggedAtDesc(aircraftId)
+                .map(last -> Duration.between(last.getFlaggedAt(), Instant.now()).compareTo(cooldown) < 0)
+                .orElse(false);
     }
 
     private String buildExplanation(FlightEvent event, Baseline baseline, ZScoreCalculator.ZScores z) {
