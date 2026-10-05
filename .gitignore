@@ -3,9 +3,6 @@ target/
 *.class
 *.jar
 *.war
-.mvn/
-mvnw
-mvnw.cmd
 
 # Node / Angular
 node_modules/
@@ -30,3 +27,7 @@ dist/
 
 # OS
 Thumbs.db
+
+# Maven wrapper — commit this, it pins the build
+!mvnw
+!.mvn/
