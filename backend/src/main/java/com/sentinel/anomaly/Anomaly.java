@@ -72,6 +72,9 @@ public class Anomaly {
     @Column(name = "acknowledged", nullable = false)
     private boolean acknowledged;
 
+    @Column(name = "escalated", nullable = false)
+    private boolean escalated;
+
     protected Anomaly() {
     }
 
@@ -111,4 +114,7 @@ public class Anomaly {
 
     public boolean isAcknowledged() { return acknowledged; }
     public void setAcknowledged(boolean acknowledged) { this.acknowledged = acknowledged; }
+
+    public boolean isEscalated() { return escalated; }
+    public void setEscalated(boolean escalated) { this.escalated = escalated; }
 }

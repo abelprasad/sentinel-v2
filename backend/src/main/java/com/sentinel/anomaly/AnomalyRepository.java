@@ -24,4 +24,10 @@ public interface AnomalyRepository extends JpaRepository<Anomaly, Long> {
     List<Anomaly> findByParentAnomalyIdOrderByFlaggedAtAsc(Long parentAnomalyId);
 
     long countByFlaggedAtAfter(Instant after);
+
+    /** Status endpoint: how many flags are awaiting analyst review. */
+    long countByAcknowledgedFalse();
+
+    /** Status endpoint: how many flags have been escalated. */
+    long countByEscalatedTrue();
 }
