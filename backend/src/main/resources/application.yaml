@@ -22,11 +22,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
-  security:
-    # Fail closed: no default users
-    user:
-      name: ${ADMIN_USERNAME:}
-      password: ${ADMIN_PASSWORD:}
 
 server:
   port: 8080
@@ -99,10 +94,6 @@ spring:
       on-profile: test
   flyway:
     enabled: true
-  security:
-    user:
-      name: test
-      password: test
 sentinel:
   adsb:
     poll-interval-ms: 3600000
