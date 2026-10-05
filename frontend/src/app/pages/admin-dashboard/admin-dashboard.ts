@@ -6,6 +6,7 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { StatusDto } from '../../core/models/api.models';
 import { backendErrorMessage, handleExpiredSession } from '../../components/admin/admin-http';
+import { AircraftTableComponent } from '../../components/admin/aircraft-table/aircraft-table';
 
 type AdminTab = 'overview' | 'aircraft' | 'anomalies' | 'baselines';
 
@@ -24,7 +25,7 @@ const TABS: ReadonlyArray<{ id: AdminTab; label: string }> = [
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, AircraftTableComponent],
   styleUrl: './admin-dashboard.scss',
   template: `
     <div class="admin-shell">
@@ -83,7 +84,7 @@ const TABS: ReadonlyArray<{ id: AdminTab; label: string }> = [
             </section>
           }
           @case ('aircraft') {
-            <p class="muted placeholder">Aircraft management lands here.</p>
+            <app-aircraft-table />
           }
           @case ('anomalies') {
             <p class="muted placeholder">Anomaly management lands here.</p>
