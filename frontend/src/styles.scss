@@ -1,3 +1,483 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "leaflet/dist/leaflet.css";
 
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   SENTINEL design tokens — three layers (primitive → semantic → component)
+   Dark tactical command-center theme. All components reference
+   these variables; never hardcode hex in component stylesheets.
+   ============================================================ */
+
+:root {
+  /* ---- Primitive: surfaces (near-black, blue undertone) ---- */
+  --s0: #04060c;   /* page background */
+  --s1: #070c16;   /* app shell */
+  --s2: #0b1220;   /* panels */
+  --s3: #0e1626;   /* cards */
+  --s4: #121c30;   /* elevated / hover */
+  --s5: #182642;   /* pressed / active tint */
+
+  /* ---- Primitive: borders (cool white, low alpha) ---- */
+  --b-subtle: rgb(148 184 220 / 0.08);
+  --b-default: rgb(148 184 220 / 0.14);
+  --b-strong: rgb(148 184 220 / 0.26);
+
+  /* ---- Primitive: text ---- */
+  --t1: #f2f6fc;   /* primary */
+  --t2: #b9c7dc;   /* secondary */
+  --t3: #7f92ad;   /* muted */
+  --t4: #54657e;   /* faint */
+
+  /* ---- Primitive: accent (radar cyan — the one brand color) ---- */
+  --cyan-300: #67e8f9;
+  --cyan-400: #22d3ee;
+  --cyan-500: #06b6d4;
+  --cyan-glow: rgb(34 211 238 / 0.35);
+
+  /* ---- Primitive: severity ---- */
+  --ok-400: #34d399;
+  --ok-bg: rgb(52 211 153 / 0.12);
+  --warn-400: #fbbf24;
+  --warn-bg: rgb(251 191 36 / 0.12);
+  --crit-400: #f87171;
+  --crit-bg: rgb(248 113 113 / 0.12);
+  --info-400: #60a5fa;
+  --info-bg: rgb(96 165 250 / 0.12);
+  --violet-400: #a78bfa;
+  --violet-bg: rgb(167 139 250 / 0.12);
+
+  /* ---- Semantic ---- */
+  --bg-page: var(--s0);
+  --bg-shell: var(--s1);
+  --bg-panel: var(--s2);
+  --bg-card: var(--s3);
+  --bg-elevated: var(--s4);
+  --bg-hover: var(--s5);
+  --border: var(--b-default);
+  --text: var(--t1);
+  --text-2: var(--t2);
+  --text-3: var(--t3);
+  --text-4: var(--t4);
+  --accent: var(--cyan-400);
+  --accent-soft: rgb(34 211 238 / 0.1);
+  --accent-border: rgb(34 211 238 / 0.4);
+
+  /* ---- Typography ---- */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- Shape ---- */
+  --r-sm: 0.375rem;
+  --r-md: 0.625rem;
+  --r-lg: 0.875rem;
+  --r-xl: 1.125rem;
+  --r-full: 999px;
+
+  /* ---- Shadows / glows ---- */
+  --sh-card: 0 8px 28px rgb(0 0 0 / 0.45);
+  --sh-pop: 0 18px 55px rgb(0 0 0 / 0.6);
+  --glow-accent: 0 0 18px var(--cyan-glow);
+  --glow-crit: 0 0 18px rgb(248 113 113 / 0.4);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* faint radar-grid backdrop for full-page views */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 50% -10%, rgb(34 211 238 / 0.055), transparent 55%),
+    linear-gradient(rgb(148 184 220 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 184 220 / 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 44px 44px, 44px 44px;
+}
+
+::selection {
+  background: rgb(34 211 238 / 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* slim dark scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1d2a42;
+  border-radius: var(--r-full);
+  border: 2px solid var(--bg-page);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b3d5e;
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.01em;
+}
+
+.mono,
+code,
+kbd,
+time {
+  font-family: var(--font-mono);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes sn-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.86); }
+}
+
+@keyframes sn-ping {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes sn-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sn-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes sn-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes sn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Shared component primitives (usable from any template)
+   ============================================================ */
+
+.panel {
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-shell));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.card-hover:hover {
+  border-color: var(--b-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-card);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font: 600 0.875rem var(--font-sans);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--b-strong);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #0e7490, #155e75);
+  border-color: rgb(34 211 238 / 0.5);
+  color: #ecfeff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 4px 18px rgb(34 211 238 / 0.18);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #0891b2, #0e7490);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), var(--glow-accent);
+}
+
+.btn-danger {
+  border-color: rgb(248 113 113 / 0.4);
+  color: var(--crit-400);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--crit-bg);
+  border-color: var(--crit-400);
+}
+
+.input,
+select.input,
+textarea.input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--s0);
+  color: var(--text);
+  font: 500 0.9rem var(--font-sans);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.input::placeholder {
+  color: var(--text-4);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(34 211 238 / 0.15);
+}
+
+label.field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--r-full);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge-ok { background: var(--ok-bg); color: var(--ok-400); border-color: rgb(52 211 153 / 0.3); }
+.badge-warn { background: var(--warn-bg); color: var(--warn-400); border-color: rgb(251 191 36 / 0.3); }
+.badge-crit { background: var(--crit-bg); color: var(--crit-400); border-color: rgb(248 113 113 / 0.35); }
+.badge-info { background: var(--info-bg); color: var(--info-400); border-color: rgb(96 165 250 / 0.3); }
+.badge-accent { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-border); }
+.badge-violet { background: var(--violet-bg); color: var(--violet-400); border-color: rgb(167 139 250 / 0.3); }
+.badge-muted { background: rgb(148 184 220 / 0.08); color: var(--text-3); border-color: var(--border); }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--b-strong);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--b-subtle);
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  transition: background var(--dur-fast);
+}
+
+.table tbody tr:hover {
+  background: rgb(148 184 220 / 0.04);
+}
+
+.table .num,
+.table td.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--b-strong), transparent);
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-3);
+  border: 1px dashed var(--b-strong);
+  border-radius: var(--r-lg);
+  background: rgb(148 184 220 / 0.02);
+}
+
+.empty-state .empty-icon {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+
+.skeleton {
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-elevated) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: sn-shimmer 1.4s linear infinite;
+  color: transparent !important;
+  user-select: none;
+}
+
+.live-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--ok-400);
+  box-shadow: 0 0 10px var(--ok-400);
+  animation: sn-pulse 1.8s ease-in-out infinite;
+  flex: none;
+}
+
+/* Leaflet dark-theme overrides (global so they pierce the map panes) */
+.leaflet-container {
+  background: var(--s0);
+  font-family: var(--font-sans);
+}
+
+.leaflet-control-attribution {
+  background: rgb(4 6 12 / 0.75) !important;
+  color: var(--text-4) !important;
+  font-size: 0.62rem !important;
+  backdrop-filter: blur(6px);
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-3) !important;
+}
+
+.leaflet-bar a {
+  background: var(--bg-card) !important;
+  color: var(--text-2) !important;
+  border-color: var(--border) !important;
+}
+
+.leaflet-bar a:hover {
+  background: var(--bg-elevated) !important;
+  color: var(--accent) !important;
+}
+
+.leaflet-tooltip {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--b-strong) !important;
+  color: var(--text) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.72rem !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: var(--sh-card) !important;
+}
+
+.leaflet-tooltip::before {
+  display: none;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--b-strong);
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--sh-pop) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--b-strong);
+}

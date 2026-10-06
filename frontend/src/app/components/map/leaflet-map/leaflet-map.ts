@@ -91,7 +91,7 @@ export class LeafletMapComponent implements AfterViewInit, OnDestroy {
       const icon = L.divIcon({
         className: 'sentinel-aircraft-marker',
         html:
-          `<span class="dot${selected ? ' selected' : ''}" ` +
+          `<span class="dot${selected ? ' selected' : ''}" data-sev="${m.severity}" ` +
           `style="--marker-color: ${MARKER_COLORS[m.severity]}"></span>`,
         iconSize: [20, 20],
         iconAnchor: [10, 10],

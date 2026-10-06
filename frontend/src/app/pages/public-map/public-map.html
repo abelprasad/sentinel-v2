@@ -1,12 +1,19 @@
 <div class="public-map">
   <header class="topbar">
     <div class="brand">
-      <h1>SENTINEL</h1>
-      <p>Live airspace anomaly detection</p>
+      <span class="mark" aria-hidden="true">◈</span>
+      <div class="titles">
+        <h1>SENTINEL</h1>
+        <p>AI airspace anomaly detection</p>
+      </div>
     </div>
-    <span class="live-badge" aria-label="Live data streaming">
-      <span class="pulse" aria-hidden="true"></span>LIVE
-    </span>
+    <div class="top-actions">
+      <a class="nav-link" routerLink="/replay">Replay</a>
+      <a class="nav-link" routerLink="/admin/login">Operator login</a>
+      <span class="live-badge" aria-label="Live data streaming">
+        <span class="live-dot" aria-hidden="true"></span>LIVE
+      </span>
+    </div>
   </header>
 
   <section class="statusbar" aria-label="System status">
@@ -18,17 +25,18 @@
       <span class="value">{{ status()?.activeTracks ?? '—' }}</span>
       <span class="label">Active tracks</span>
     </div>
-    <div class="stat">
+    <div class="stat" [class.hot]="(status()?.anomaliesLast24h ?? 0) > 0">
       <span class="value">{{ status()?.anomaliesLast24h ?? '—' }}</span>
-      <span class="label">Anomalies (24h)</span>
+      <span class="label">Anomalies · 24h</span>
     </div>
     <div class="stat">
       <span class="value">{{ status()?.eventsLastHour ?? '—' }}</span>
-      <span class="label">Events (1h)</span>
+      <span class="label">Events · 1h</span>
     </div>
-    @if (lastUpdated()) {
-      <span class="updated">Updated {{ lastUpdated() | date: 'HH:mm:ss' }}</span>
-    }
+    <div class="clock" aria-label="Current time">
+      <span class="time">{{ now() | date: 'HH:mm:ss' }}</span>
+      <span class="date">{{ now() | date: 'EEE d MMM yyyy' }}</span>
+    </div>
   </section>
 
   @if (error()) {
@@ -43,6 +51,11 @@
         [selectedIcao]="selectedIcao()"
         (markerClick)="select($event)"
       />
+      <div class="map-legend" aria-hidden="true">
+        <span><i style="background: #22d3ee; box-shadow: 0 0 6px #22d3ee"></i>Tracked</span>
+        <span><i style="background: #fbbf24; box-shadow: 0 0 6px #fbbf24"></i>Anomaly</span>
+        <span><i style="background: #f87171; box-shadow: 0 0 6px #f87171"></i>Escalated</span>
+      </div>
       @if (selectedIcao()) {
         <app-track-detail
           class="detail-overlay"
@@ -53,7 +66,10 @@
     </section>
 
     <aside class="sidebar" aria-label="Recent anomalies">
-      <h2>Recent anomalies</h2>
+      <div class="side-head">
+        <h2 class="section-title">Anomaly feed</h2>
+        <span class="count num">{{ anomalies().length }}</span>
+      </div>
       <ul class="anomaly-feed">
         @for (a of anomalies(); track a.id) {
           <li>
@@ -61,6 +77,7 @@
               type="button"
               (click)="select(a.icaoHex)"
               [class.active]="a.icaoHex === selectedIcao()"
+              [class.is-escalated]="a.escalated"
               [attr.aria-current]="a.icaoHex === selectedIcao() ? 'true' : null"
               [attr.aria-label]="
                 'View track for ' + (a.callsign?.trim() || a.icaoHex) + ', anomaly score ' + (a.score | number: '1.1-1')
@@ -69,11 +86,14 @@
               <span class="row-top">
                 <strong>{{ a.callsign?.trim() || a.icaoHex }}</strong>
                 @if (a.escalated) {
-                  <span class="badge escalated">Escalated</span>
+                  <span class="badge badge-crit">Escalated</span>
+                } @else if (a.acknowledged) {
+                  <span class="badge badge-muted">Ack'd</span>
                 }
               </span>
               <span class="row-meta">
-                score {{ a.score | number: '1.1-1' }} &middot; {{ a.flaggedAt | date: 'short' }}
+                <span class="score">σ {{ a.score | number: '1.1-1' }}</span>
+                <span>{{ a.flaggedAt | date: 'short' }}</span>
               </span>
               @if (a.explanation) {
                 <span class="row-expl">{{ a.explanation }}</span>
@@ -82,11 +102,16 @@
           </li>
         } @empty {
           <li class="empty">
-            @if (loading()) {
-              Loading&hellip;
-            } @else {
-              No anomalies reported recently.
-            }
+            <div class="empty-state">
+              @if (loading()) {
+                <span class="empty-icon" aria-hidden="true">◌</span>
+                Scanning airspace&hellip;
+              } @else {
+                <span class="empty-icon" aria-hidden="true">✓</span>
+                <div><strong>Airspace nominal.</strong></div>
+                <div>No anomalies flagged in the current window.</div>
+              }
+            </div>
           </li>
         }
       </ul>

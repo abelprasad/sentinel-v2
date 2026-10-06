@@ -1,5 +1,6 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
 
@@ -30,7 +31,7 @@ import {
 @Component({
   selector: 'app-public-map',
   standalone: true,
-  imports: [LeafletMapComponent, TrackDetailComponent, DatePipe, DecimalPipe],
+  imports: [LeafletMapComponent, TrackDetailComponent, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './public-map.html',
   styleUrl: './public-map.scss',
 })
@@ -45,8 +46,13 @@ export class PublicMapComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly lastUpdated = signal<Date | null>(null);
+  /** Live clock for the status strip (1s cadence, signal-driven). */
+  protected readonly now = signal(new Date());
 
   ngOnInit(): void {
+    timer(0, 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.now.set(new Date()));
     timer(0, MAP_REFRESH_INTERVAL_MS)
       .pipe(
         switchMap(() => this.refresh()),

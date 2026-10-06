@@ -21,11 +21,11 @@ export interface TileLayerConfig {
   maxZoom: number;
 }
 
-/** OpenStreetMap standard tile layer. */
+/** CartoDB Dark Matter — dark basemap for the command-center theme. */
 export const TILE_LAYER: TileLayerConfig = {
-  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   attribution:
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   maxZoom: 19,
 };
 
@@ -39,14 +39,14 @@ export const MAP_REFRESH_INTERVAL_MS = 30_000;
  * Marker severity drives color on the map:
  * - escalated: red    (anomaly flagged as escalated)
  * - anomaly:   amber  (flagged by the anomaly engine)
- * - normal:    blue   (tracked aircraft, no anomaly)
+ * - normal:    cyan   (tracked aircraft, no anomaly)
  */
 export type MarkerSeverity = 'normal' | 'anomaly' | 'escalated';
 
 export const MARKER_COLORS: Record<MarkerSeverity, string> = {
-  normal: '#2563eb',
-  anomaly: '#f59e0b',
-  escalated: '#ef4444',
+  normal: '#22d3ee',
+  anomaly: '#fbbf24',
+  escalated: '#f87171',
 };
 
 /** Marker for a single aircraft plotted on the public map. */
