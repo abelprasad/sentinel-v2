@@ -70,23 +70,25 @@ import { AnomalyDto } from '../../core/models/api.models';
   `,
   styles: [
     `
-    .detail { padding: 1rem 1.25rem; background: #0d1520; border-top: 1px solid #1e2a3a; }
+    .detail { padding: 1.1rem 1.25rem; background: rgb(4 6 12 / 0.5); border-top: 1px solid var(--border); }
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     @media (max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
-    h4 { margin: 0 0 0.75rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8fa3bd; display: flex; align-items: center; gap: 0.5rem; }
-    .zrow { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; }
-    .zlabel { width: 5.5rem; font-size: 0.8rem; color: #c7d3e3; }
-    .zbar-track { flex: 1; height: 0.6rem; background: #182233; border-radius: 0.3rem; overflow: hidden; }
-    .zbar { height: 100%; background: #4aa8ff; border-radius: 0.3rem; transition: width 0.2s ease; }
-    .zbar.hot { background: #ff5a5a; }
-    .zvalue { width: 3.5rem; text-align: right; font-variant-numeric: tabular-nums; font-size: 0.85rem; color: #dbe5f2; }
-    .zlegend { font-size: 0.72rem; color: #66788f; margin: 0.6rem 0 0; }
-    .expl-text { font-size: 0.95rem; line-height: 1.55; color: #eef3fa; margin: 0; border-left: 3px solid #4aa8ff; padding-left: 0.75rem; }
-    .src-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.15rem 0.5rem; border-radius: 0.25rem; }
-    .src-badge.rule { background: #1d3a5f; color: #8fc2ff; }
-    .src-badge.ai { background: #3d2b5f; color: #c9a6ff; }
-    .thread { margin-top: 0.9rem; font-size: 0.85rem; color: #a9bad1; }
-    .thread a { color: #6db4ff; font-weight: 600; }
+    h4 { margin: 0 0 0.8rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); display: flex; align-items: center; gap: 0.5rem; }
+    .zrow { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+    .zlabel { width: 5.5rem; font-size: 0.8rem; font-weight: 600; color: var(--text-2); }
+    .zbar-track { flex: 1; height: 0.55rem; background: var(--s0); border: 1px solid var(--b-subtle); border-radius: var(--r-full); overflow: hidden; }
+    .zbar { height: 100%; background: linear-gradient(90deg, var(--cyan-500), var(--accent)); border-radius: var(--r-full); transition: width 0.3s var(--ease-out); box-shadow: 0 0 8px rgb(34 211 238 / 0.35); }
+    .zbar.hot { background: linear-gradient(90deg, var(--warn-400), var(--crit-400)); box-shadow: 0 0 10px rgb(248 113 113 / 0.5); }
+    .zvalue { width: 3.8rem; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .zlegend { font-size: 0.72rem; color: var(--text-4); margin: 0.7rem 0 0; }
+    .expl-text { font-size: 0.92rem; line-height: 1.6; color: var(--text); margin: 0; border-left: 3px solid var(--accent); padding: 0.2rem 0 0.2rem 0.85rem; text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
+    .src-badge { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em; padding: 0.2rem 0.55rem; border-radius: var(--r-full); border: 1px solid transparent; }
+    .src-badge.rule { background: var(--info-bg); color: var(--info-400); border-color: rgb(96 165 250 / 0.35); }
+    .src-badge.ai { background: var(--violet-bg); color: var(--violet-400); border-color: rgb(167 139 250 / 0.4); box-shadow: 0 0 10px rgb(167 139 250 / 0.2); }
+    .thread { margin-top: 0.9rem; font-size: 0.85rem; color: var(--text-3); }
+    .thread a { color: var(--accent); font-weight: 600; font-family: var(--font-mono); text-decoration: none; border-bottom: 1px dotted var(--accent-border); }
+    .thread a:hover { border-bottom-style: solid; }
+
     `,
   ],
 })

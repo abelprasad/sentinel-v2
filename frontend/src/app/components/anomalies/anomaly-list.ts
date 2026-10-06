@@ -51,7 +51,7 @@ import { AnomalyDetailComponent } from './anomaly-detail';
       } @else {
         <ul class="anomaly-list">
           @for (a of anomalies(); track a.id) {
-            <li class="anomaly-card" [class.acknowledged]="a.acknowledged">
+            <li [class]="cardClass(a)">
               <button
                 type="button"
                 class="row-toggle"
@@ -100,35 +100,44 @@ import { AnomalyDetailComponent } from './anomaly-detail';
   `,
   styles: [
     `
-    h2 { font-size: 1.25rem; margin: 0 0 1rem; }
+    :host { display: block; animation: sn-fade-up var(--dur-med) var(--ease-out); }
+    h2 { font-size: 1.25rem; margin: 0 0 1rem; font-weight: 700; letter-spacing: -0.01em; }
     .filter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .filter label { font-size: 0.85rem; color: #8fa3bd; }
-    .filter input { background: #0d1520; border: 1px solid #2a3a52; color: #eef3fa; padding: 0.4rem 0.6rem; border-radius: 0.3rem; width: 8rem; text-transform: uppercase; }
-    .filter button { background: #182233; border: 1px solid #2a3a52; color: #dbe5f2; padding: 0.4rem 0.8rem; border-radius: 0.3rem; cursor: pointer; }
-    .filter button:hover { background: #22314a; }
-    .status { color: #8fa3bd; padding: 1rem 0; }
-    .status.error { color: #ff8a8a; }
-    .anomaly-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-    .anomaly-card { border: 1px solid #1e2a3a; border-radius: 0.5rem; overflow: hidden; background: #0a1119; }
-    .anomaly-card.acknowledged { opacity: 0.72; }
-    .row-toggle { width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 0.9rem; background: none; border: none; color: inherit; cursor: pointer; text-align: left; }
-    .row-toggle:hover { background: #101b2a; }
-    .score-badge { min-width: 3.2rem; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; padding: 0.35rem 0.5rem; border-radius: 0.35rem; font-size: 0.9rem; }
-    .sev-low { background: #1c3a24; color: #7fd68f; }
-    .sev-med { background: #4a3d12; color: #f4c542; }
-    .sev-high { background: #54220f; color: #ff9a5a; }
-    .sev-crit { background: #5f1515; color: #ff6b6b; }
-    .main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-    .callsign { font-weight: 700; color: #eef3fa; }
-    .icao { font-size: 0.75rem; color: #66788f; font-family: monospace; }
-    .meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #8fa3bd; }
-    .pill { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; padding: 0.15rem 0.45rem; border-radius: 0.25rem; }
-    .pill.ack { background: #22314a; color: #9fc1e8; }
-    .pill.esc { background: #5f1515; color: #ff8a8a; }
-    .chevron { color: #66788f; }
-    .pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; font-size: 0.85rem; color: #8fa3bd; }
-    .pagination button { background: #182233; border: 1px solid #2a3a52; color: #dbe5f2; padding: 0.4rem 0.9rem; border-radius: 0.3rem; cursor: pointer; }
-    .pagination button:disabled { opacity: 0.4; cursor: default; }
+    .filter label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+    .filter input { background: var(--s0); border: 1px solid var(--border); color: var(--text); padding: 0.45rem 0.65rem; border-radius: var(--r-md); width: 9rem; text-transform: uppercase; font-family: var(--font-mono); font-size: 0.85rem; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); }
+    .filter input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgb(34 211 238 / 0.15); }
+    .filter button { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-2); padding: 0.45rem 0.9rem; border-radius: var(--r-md); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all var(--dur-fast) var(--ease-out); }
+    .filter button:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+    .status { color: var(--text-3); padding: 2rem 0; text-align: center; }
+    .status.error { color: var(--crit-400); }
+    .anomaly-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+    .anomaly-card { border: 1px solid var(--border); border-left: 3px solid var(--warn-400); border-radius: var(--r-md); overflow: hidden; background: linear-gradient(180deg, var(--bg-card), var(--bg-panel)); transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), border-color var(--dur-fast); }
+    .anomaly-card:hover { transform: translateX(3px); box-shadow: var(--sh-card); border-color: var(--b-strong); }
+    .anomaly-card.acknowledged { opacity: 0.62; }
+    .anomaly-card.sev-crit { border-left-color: var(--crit-400); }
+    .anomaly-card.sev-high { border-left-color: var(--warn-400); }
+    .anomaly-card.sev-med { border-left-color: var(--warn-400); opacity: 0.92; }
+    .anomaly-card.sev-low { border-left-color: var(--info-400); }
+    .row-toggle { width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0.95rem; background: none; border: none; color: inherit; cursor: pointer; text-align: left; font-family: inherit; }
+    .row-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .score-badge { min-width: 3.4rem; text-align: center; font-weight: 800; font-family: var(--font-mono); font-variant-numeric: tabular-nums; padding: 0.4rem 0.5rem; border-radius: var(--r-md); font-size: 0.95rem; border: 1px solid transparent; }
+    .sev-low { background: var(--info-bg); color: var(--info-400); border-color: rgb(96 165 250 / 0.3); }
+    .sev-med { background: var(--warn-bg); color: var(--warn-400); border-color: rgb(251 191 36 / 0.3); }
+    .sev-high { background: var(--warn-bg); color: var(--warn-400); border-color: rgb(251 191 36 / 0.45); box-shadow: 0 0 12px rgb(251 191 36 / 0.18); }
+    .sev-crit { background: var(--crit-bg); color: var(--crit-400); border-color: rgb(248 113 113 / 0.45); box-shadow: var(--glow-crit); animation: sn-blink 2.4s ease-in-out infinite; }
+    .main { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 0.1rem; }
+    .callsign { font-weight: 700; color: var(--text); font-family: var(--font-mono); font-size: 0.92rem; letter-spacing: 0.02em; }
+    .icao { font-size: 0.72rem; color: var(--text-4); font-family: var(--font-mono); }
+    .meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-3); font-family: var(--font-mono); }
+    .pill { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.07em; padding: 0.18rem 0.5rem; border-radius: var(--r-full); border: 1px solid transparent; }
+    .pill.ack { background: rgb(148 184 220 / 0.1); color: var(--text-3); border-color: var(--border); }
+    .pill.esc { background: var(--crit-bg); color: var(--crit-400); border-color: rgb(248 113 113 / 0.4); }
+    .chevron { color: var(--text-4); font-size: 0.8rem; transition: transform var(--dur-fast); }
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.2rem; font-size: 0.85rem; color: var(--text-3); font-family: var(--font-mono); }
+    .pagination button { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-2); padding: 0.45rem 1rem; border-radius: var(--r-md); cursor: pointer; font-weight: 600; transition: all var(--dur-fast); }
+    .pagination button:hover:not(:disabled) { border-color: var(--accent-border); color: var(--accent); }
+    .pagination button:disabled { opacity: 0.35; cursor: default; }
+
     `,
   ],
 })
@@ -192,6 +201,11 @@ export class AnomalyListComponent implements OnInit, OnDestroy {
 
   displayCallsign(a: AnomalyDto): string {
     return a.callsign?.trim() ? a.callsign : 'UNKNOWN';
+  }
+
+  /** Full CSS class string for an anomaly card (severity + acknowledged). */
+  cardClass(a: AnomalyDto): string {
+    return `anomaly-card ${this.severityClass(a.score)}${a.acknowledged ? ' acknowledged' : ''}`;
   }
 
   severityClass(score: number): string {
