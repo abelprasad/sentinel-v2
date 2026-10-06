@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
 import { PublicMapComponent } from './public-map';
@@ -81,7 +82,7 @@ describe('PublicMapComponent', () => {
     };
     await TestBed.configureTestingModule({
       imports: [PublicMapComponent],
-      providers: [{ provide: ApiService, useValue: apiStub }],
+      providers: [provideRouter([]), { provide: ApiService, useValue: apiStub }],
     }).compileComponents();
     fixture = TestBed.createComponent(PublicMapComponent);
   });
@@ -113,7 +114,7 @@ describe('PublicMapComponent', () => {
     expect(buttons.length).toBe(2);
     expect(buttons[0].textContent).toContain('UAL123');
     expect(buttons[1].textContent).toContain('d4e5f6');
-    expect(buttons[0].querySelector('.badge.escalated')?.textContent).toContain('Escalated');
+    expect(buttons[0].querySelector('.badge-crit')?.textContent).toContain('Escalated');
   });
 
   it('opens the track detail when a feed item is selected', async () => {
