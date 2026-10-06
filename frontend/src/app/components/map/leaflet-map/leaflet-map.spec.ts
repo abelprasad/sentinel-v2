@@ -37,8 +37,8 @@ describe('LeafletMapComponent', () => {
         '.sentinel-aircraft-marker .dot',
       ) as NodeListOf<HTMLElement>),
     ];
-    expect(dots[0].style.getPropertyValue('--marker-color')).toBe('#f59e0b');
-    expect(dots[1].style.getPropertyValue('--marker-color')).toBe('#ef4444');
+    expect(dots[0].style.getPropertyValue('--marker-color')).toBe('#fbbf24');
+    expect(dots[1].style.getPropertyValue('--marker-color')).toBe('#f87171');
   });
 
   it('highlights the selected marker', () => {
