@@ -263,11 +263,16 @@ const PAD = 24;
   imports: [CommonModule, FormsModule],
   template: `
     <section aria-labelledby="replay-heading">
-      <h2 id="replay-heading">Replay mode</h2>
-      <p class="intro">
-        Deterministic scripted scenarios. No backend, no network — everything you see is
-        synthesized locally so this demo works fully offline.
-      </p>
+      <div class="replay-head">
+        <div>
+          <h2 id="replay-heading">Replay mode</h2>
+          <p class="intro">
+            Deterministic scripted scenarios. No backend, no network — everything you see is
+            synthesized locally so this demo works fully offline.
+          </p>
+        </div>
+        <span class="badge badge-accent offline-badge">100% offline</span>
+      </div>
 
       <div class="scenario-picker" role="group" aria-label="Choose a scenario">
         @for (s of scenarios; track s.id) {
@@ -306,16 +311,16 @@ const PAD = 24;
           <polyline
             [attr.points]="pathPoints()"
             fill="none"
-            stroke="#2c3e58"
+            stroke="#22314d"
             stroke-width="2"
           />
           @for (p of anomalyMarkers(); track p.t) {
-            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="6" fill="none" stroke="#ff6b6b" stroke-width="2">
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="6" fill="none" stroke="#f87171" stroke-width="2">
               <title>Anomaly flagged at T+{{ p.t }}s</title>
             </circle>
           }
-          <circle [attr.cx]="position().x" [attr.cy]="position().y" r="7" fill="#4aa8ff" />
-          <circle [attr.cx]="position().x" [attr.cy]="position().y" r="11" fill="none" stroke="#4aa8ff" stroke-opacity="0.4" />
+          <circle [attr.cx]="position().x" [attr.cy]="position().y" r="7" fill="#22d3ee" />
+          <circle [attr.cx]="position().x" [attr.cy]="position().y" r="11" fill="none" stroke="#22d3ee" stroke-opacity="0.4" />
         </svg>
 
         <div class="telemetry" aria-label="Current telemetry" aria-live="polite">
@@ -381,44 +386,50 @@ const PAD = 24;
   `,
   styles: [
     `
-    h2 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-    .intro { color: #8fa3bd; font-size: 0.9rem; margin: 0 0 1rem; max-width: 46rem; }
-    .scenario-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-    .scenario-btn { display: flex; flex-direction: column; gap: 0.2rem; text-align: left; background: #0d1520; border: 1px solid #1e2a3a; color: #dbe5f2; padding: 0.7rem 0.9rem; border-radius: 0.5rem; cursor: pointer; }
-    .scenario-btn:hover { border-color: #4aa8ff; }
-    .scenario-btn.active { border-color: #4aa8ff; background: #122033; }
-    .scenario-name { font-weight: 700; }
-    .scenario-tagline { font-size: 0.78rem; color: #8fa3bd; }
-    .player { background: #0a1119; border: 1px solid #1e2a3a; border-radius: 0.6rem; padding: 1.25rem; }
-    .player header { display: flex; justify-content: space-between; align-items: baseline; }
-    .player h3 { margin: 0; font-size: 1.1rem; }
-    .callsign-line { margin: 0.2rem 0 0; font-size: 0.8rem; color: #8fa3bd; font-family: monospace; }
-    .elapsed { font-variant-numeric: tabular-nums; font-size: 0.9rem; color: #8fa3bd; margin: 0; }
-    .description { color: #a9bad1; font-size: 0.9rem; line-height: 1.5; max-width: 46rem; }
-    .track-plot { width: 100%; height: auto; background: #080d14; border: 1px solid #16202f; border-radius: 0.4rem; margin: 0.75rem 0; }
-    .telemetry { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
-    .telemetry div { background: #0d1520; border: 1px solid #16202f; border-radius: 0.35rem; padding: 0.5rem 0.7rem; display: flex; flex-direction: column; }
-    .telemetry span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #66788f; }
-    .telemetry strong { font-size: 0.95rem; font-variant-numeric: tabular-nums; color: #eef3fa; }
+    :host { display: block; max-width: 76rem; margin: 0 auto; padding: 2rem 1.5rem 3rem; animation: sn-fade-up var(--dur-med) var(--ease-out); }
+    .replay-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    h2 { font-size: 1.9rem; margin: 0; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(90deg, #fff, var(--cyan-300)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .intro { color: var(--text-3); font-size: 0.95rem; margin: 0.4rem 0 0; max-width: 44rem; line-height: 1.55; }
+    .offline-badge { flex: none; }
+    .scenario-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.7rem; margin-bottom: 1.2rem; }
+    .scenario-btn { display: flex; flex-direction: column; gap: 0.25rem; text-align: left; background: linear-gradient(180deg, var(--bg-card), var(--bg-panel)); border: 1px solid var(--border); color: var(--text); padding: 0.85rem 1rem; border-radius: var(--r-lg); cursor: pointer; transition: all var(--dur-fast) var(--ease-out); }
+    .scenario-btn:hover { transform: translateY(-2px); border-color: var(--b-strong); box-shadow: var(--sh-card); }
+    .scenario-btn.active { border-color: var(--accent-border); background: linear-gradient(180deg, rgb(34 211 238 / 0.1), var(--bg-card)); box-shadow: var(--glow-accent); }
+    .scenario-name { font-weight: 700; font-size: 0.95rem; }
+    .scenario-tagline { font-size: 0.78rem; color: var(--text-3); line-height: 1.45; }
+    .player { background: linear-gradient(180deg, var(--bg-panel), var(--bg-shell)); border: 1px solid var(--b-strong); border-radius: var(--r-xl); padding: 1.5rem; box-shadow: var(--sh-pop); }
+    .player header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .player h3 { margin: 0; font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono); letter-spacing: 0.02em; }
+    .callsign-line { margin: 0.25rem 0 0; font-size: 0.78rem; color: var(--text-3); font-family: var(--font-mono); letter-spacing: 0.06em; }
+    .elapsed { font-variant-numeric: tabular-nums; font-size: 1rem; color: var(--accent); margin: 0; font-family: var(--font-mono); font-weight: 600; text-shadow: 0 0 12px var(--cyan-glow); }
+    .description { color: var(--text-2); font-size: 0.92rem; line-height: 1.6; max-width: 48rem; }
+    .track-plot { width: 100%; height: auto; background: var(--s0); border: 1px solid var(--border); border-radius: var(--r-lg); margin: 0.9rem 0; box-shadow: inset 0 0 50px rgb(0 0 0 / 0.5); }
+    .telemetry { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; margin-bottom: 1.2rem; }
+    .telemetry div { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.15rem; transition: border-color var(--dur-fast); }
+    .telemetry div:hover { border-color: var(--b-strong); }
+    .telemetry span { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
+    .telemetry strong { font-size: 1.05rem; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text); font-weight: 700; }
     @media (max-width: 640px) { .telemetry { grid-template-columns: repeat(2, 1fr); } }
-    .controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .controls button { background: #182233; border: 1px solid #2a3a52; color: #dbe5f2; padding: 0.45rem 1rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.9rem; }
-    .controls button:hover { background: #22314a; }
-    .speed { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #8fa3bd; }
-    .speed select { background: #0d1520; border: 1px solid #2a3a52; color: #dbe5f2; padding: 0.35rem 0.5rem; border-radius: 0.3rem; }
-    .scrubber { flex: 1; min-width: 8rem; accent-color: #4aa8ff; }
-    .player h4 { margin: 0 0 0.6rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8fa3bd; }
-    .no-events { color: #66788f; font-size: 0.85rem; }
-    .event-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-    .event { display: flex; gap: 0.8rem; align-items: flex-start; background: #0d1520; border: 1px solid #1e2a3a; border-left: 3px solid #4aa8ff; border-radius: 0.4rem; padding: 0.7rem 0.9rem; }
-    .event.escalated { border-left-color: #ff6b6b; }
-    .event-t { font-family: monospace; font-size: 0.8rem; color: #8fa3bd; white-space: nowrap; }
-    .event-score { font-weight: 800; font-variant-numeric: tabular-nums; color: #ff8a8a; white-space: nowrap; }
-    .event-body p { margin: 0 0 0.4rem; font-size: 0.88rem; line-height: 1.5; color: #eef3fa; }
-    .src-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.12rem 0.45rem; border-radius: 0.25rem; background: #1d3a5f; color: #8fc2ff; margin-right: 0.4rem; }
-    .src-badge.ai { background: #3d2b5f; color: #c9a6ff; }
-    .esc-pill { font-size: 0.65rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 0.25rem; background: #5f1515; color: #ff8a8a; margin-right: 0.4rem; }
-    .thread-note { font-size: 0.75rem; color: #66788f; }
+    .controls { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.2rem; padding: 0.8rem 1rem; background: rgb(4 6 12 / 0.5); border: 1px solid var(--b-subtle); border-radius: var(--r-lg); }
+    .controls button { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1.1rem; border-radius: var(--r-md); cursor: pointer; font-size: 0.88rem; font-weight: 700; transition: all var(--dur-fast) var(--ease-out); }
+    .controls button:hover { border-color: var(--accent-border); color: var(--accent); box-shadow: var(--glow-accent); }
+    .speed { display: flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; color: var(--text-3); }
+    .speed select { background: var(--s0); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.55rem; border-radius: var(--r-md); font-family: var(--font-mono); }
+    .scrubber { flex: 1; min-width: 8rem; accent-color: var(--accent); }
+    .player h4 { margin: 0 0 0.7rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); }
+    .no-events { color: var(--text-4); font-size: 0.88rem; padding: 1rem; text-align: center; border: 1px dashed var(--b-strong); border-radius: var(--r-md); }
+    .event-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+    .event { display: flex; gap: 0.9rem; align-items: flex-start; background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--warn-400); border-radius: var(--r-md); padding: 0.8rem 1rem; animation: sn-fade-up var(--dur-med) var(--ease-out); }
+    .event.escalated { border-left-color: var(--crit-400); box-shadow: var(--glow-crit); }
+    .event-t { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .event-score { font-weight: 800; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--warn-400); white-space: nowrap; font-size: 0.95rem; }
+    .event.escalated .event-score { color: var(--crit-400); }
+    .event-body p { margin: 0 0 0.45rem; font-size: 0.9rem; line-height: 1.55; color: var(--text); }
+    .src-badge { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; padding: 0.16rem 0.5rem; border-radius: var(--r-full); background: var(--info-bg); color: var(--info-400); border: 1px solid rgb(96 165 250 / 0.35); margin-right: 0.4rem; }
+    .src-badge.ai { background: var(--violet-bg); color: var(--violet-400); border-color: rgb(167 139 250 / 0.4); }
+    .esc-pill { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; padding: 0.16rem 0.5rem; border-radius: var(--r-full); background: var(--crit-bg); color: var(--crit-400); border: 1px solid rgb(248 113 113 / 0.4); margin-right: 0.4rem; }
+    .thread-note { font-size: 0.75rem; color: var(--text-4); }
+
     `,
   ],
 })

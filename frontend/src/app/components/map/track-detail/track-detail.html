@@ -4,6 +4,7 @@
       <div class="identity">
         <h2>{{ track()?.aircraft?.callsign?.trim() || icaoHex() }}</h2>
         <p class="icao">ICAO {{ icaoHex() }}</p>
+        <p class="live-row"><span class="live-dot" aria-hidden="true"></span>TRACKING</p>
       </div>
       <button type="button" class="close-btn" (click)="close()" aria-label="Close track detail">
         &times;
