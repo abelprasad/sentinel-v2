@@ -42,6 +42,8 @@ services:
       LLM_API_KEY: 
       ADSB_URL: https://api.adsb.lol/v2/lat/40.0/lon/-75.1/dist/25
       CORS_ALLOWED_ORIGIN: 
+      ADMIN_USERNAME: 
+      ADMIN_PASSWORD: 
     depends_on:
       db:
         condition: service_healthy
