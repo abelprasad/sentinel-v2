@@ -22,7 +22,8 @@ import { backendErrorMessage } from '../../components/admin/admin-http';
       </a>
 
       <section class="login-card" aria-labelledby="login-heading">
-        <h1 id="login-heading">Admin sign-in</h1>
+        <span class="card-mark" aria-hidden="true">◈</span>
+        <h1 id="login-heading">Operator sign-in</h1>
         <p class="sub">Restricted area. Authorized operators only.</p>
 
         <form [formGroup]="form" (ngSubmit)="submit()" novalidate>

@@ -33,7 +33,9 @@ const TABS: ReadonlyArray<{ id: AdminTab; label: string }> = [
     <div class="admin-shell">
       <header class="admin-header">
         <div class="brand">
-          <h1>SENTINEL admin</h1>
+          <span class="mark" aria-hidden="true">◈</span>
+          <h1>SENTINEL</h1>
+          <span class="badge badge-accent role-badge">CONSOLE</span>
         </div>
         <button type="button" class="logout-btn" (click)="logout()" aria-label="Sign out of the admin dashboard">
           Sign out
